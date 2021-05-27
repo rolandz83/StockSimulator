@@ -4,7 +4,7 @@ import AlphaVantageAPI as Trade
 
 win = tk.Tk()
 win.title("IBM Stock Simulator")
-win.geometry("600x350")
+win.geometry("450x200")
 
 trader = Trade.DayTrader()
 
@@ -41,16 +41,33 @@ def sell():
 def hold():
     nextday()
 
+def about():
+    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.0.1 \n by Roland Zeren")
+
 def load():
     global data
     data = Trade.load_data()
     buy_bt.configure(state="active")
     sell_bt.configure(state="active")
     hold_bt.configure(state="active")
+    max_bt.configure(state="active")
     stock_price_intvar.set("$" + str(data[trader.day_counter][1]))
     date_var['text'] = data[trader.day_counter][0]
     nextday()
-    load_bt.configure(state="disabled")
+    sub_menu_file.entryconfig('Load', state=tk.DISABLED)
+
+main_menu = tk.Menu(win)
+win.config(menu=main_menu)
+
+sub_menu_file = tk.Menu(main_menu, tearoff=0)
+main_menu.add_cascade(label="File", underline=0, menu=sub_menu_file)
+
+sub_menu_file.add_command(label="Load", underline=0, command=load)
+sub_menu_file.add_separator()
+sub_menu_file.add_command(label="Exit", underline=0, command=win.destroy)
+
+sub_menu_about = tk.Menu(main_menu)
+main_menu.add_command(label="About", command=about)
 
 emptyspace = tk.Label(win, borderwidth=5, text="       ")
 
@@ -73,8 +90,7 @@ date_var = tk.Label(win, text="date-variable")
 buy_bt = tk.Button(win, text="Buy", state="disabled", command=buy)
 sell_bt = tk.Button(win, text="Sell", state="disabled", command=sell)
 hold_bt = tk.Button(win, text="Hold", state="disabled", command=hold)
-quit_bt = tk.Button(win, text="Quit", command=win.destroy)
-load_bt = tk.Button(win, text="Load Data", command=load)
+max_bt = tk.Button(win, text="Max", state="disabled", command=lambda:stock_num_input.set(int(trader.bank_account / data[trader.day_counter-1][1])))
 
 def test_Var(entry_value, acttion_type):
     print("Value: ", entry_value)
@@ -86,8 +102,9 @@ def test_Var(entry_value, acttion_type):
     if acttion_type == '0': #deleting accured
         print("Deleted")
         return True
-    if acttion_type == '-1':
+    if acttion_type == '-1': #when var is changed by set()
         print("something else happeened")
+        return True
 
 user_input = tk.Entry(win, width=5, validate='key', textvariable=stock_num_input)
 user_input.configure(validatecommand=(win.register(test_Var), '%P', '%d'))
@@ -104,14 +121,13 @@ stock_price_label.grid(column=8, row=1, columnspan=2)
 stock_price_var.grid(column=10, row=1)
 date_label.grid(column=8, row=2, columnspan=2)
 date_var.grid(column=10, row=2)
+max_bt.grid(column=6, row=3)
 
 emptyspace.grid(column=0, row=3, columnspan=5, pady=30)
 
 buy_bt.grid(column=0, row=4, padx=10, pady=10)
 sell_bt.grid(column=1, row=4, padx=10, pady=10)
 hold_bt.grid(column=2, row=4, padx=10, pady=10)
-quit_bt.grid(column=3, row=4, padx=10, pady=10)
-load_bt.grid(column=5, row=1)
 user_input.grid(column=5, row=3)
 
 win.mainloop()
