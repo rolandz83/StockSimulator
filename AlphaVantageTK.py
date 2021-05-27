@@ -15,7 +15,17 @@ stock_num_input = tk.StringVar(value="1")
 
 def nextday():
     if day_var['text'] == 30:
-        tk.messagebox.showinfo("Game Over", "Day 30 reached.")
+        account_total = trader.bank_account + trader.num_of_shares * data[trader.day_counter-1][1]
+        if account_total < 10000:
+            tk.messagebox.showinfo("Game Over", """Day 30 reached.
+                                    Your total account worth is ${:.2f}
+                                    You lost some $$$ dont play the stock market it isn't for you!
+                                   """.format(account_total))
+        else:
+            tk.messagebox.showinfo("Game Over", """Day 30 reached.
+                                   Your total account worth is ${:.2f}
+                                   You Won! now go play on the real stock market, You're good at this!
+                                   """.format(account_total))
     else:
         trader.day_counter += 1
         day_var['text'] = trader.day_counter
