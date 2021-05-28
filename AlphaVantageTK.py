@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import scrolledtext
 import AlphaVantageAPI as Trade
 
 win = tk.Tk()
 win.title("IBM Stock Simulator")
-win.geometry("450x200")
+win.geometry("540x330")
 
 trader = Trade.DayTrader()
 
@@ -33,26 +34,34 @@ def nextday():
         date_var['text'] = data[trader.day_counter-1][0]
 
 def buy():
-    if trader.buy(int(stock_num_input.get()),data[trader.day_counter-1][1]): #Returns false if transaction fails.
-        acc_var['text'] = "$" + "{:.2f}".format(trader.bank_account)
-        shares_var['text'] = trader.num_of_shares
-        nextday()
+    if stock_num_input.get() != "0":
+        if trader.buy(int(stock_num_input.get()),data[trader.day_counter-1][1]): #Returns false if transaction fails.
+            acc_var['text'] = "$" + "{:.2f}".format(trader.bank_account)
+            shares_var['text'] = trader.num_of_shares
+            trans_history.insert(tk.END, "Day#:{} = Bought {} of shares @ ${} \n".format(trader.day_counter-1, stock_num_input.get(), data[trader.day_counter-1][1]))
+            nextday()
+        else:
+            tk.messagebox.showwarning("Not Enough funds!", "Sorry, You dont have enough cash to complete this transaction.")
     else:
-        tk.messagebox.showwarning("Not Enough funds!", "Sorry, You dont have enough cash to complete this transaction.")
+        tk.messagebox.showwarning("Invalid transaction", """You can't buy "zero" shares""")
 
 def sell():
-    if trader.sell(int(stock_num_input.get()),data[trader.day_counter-1][1]):
-        acc_var['text'] = "$" + "{:.2f}".format(trader.bank_account)
-        shares_var['text'] = trader.num_of_shares
-        nextday()
+    if stock_num_input.get() != "0":
+        if trader.sell(int(stock_num_input.get()),data[trader.day_counter-1][1]):
+            acc_var['text'] = "$" + "{:.2f}".format(trader.bank_account)
+            shares_var['text'] = trader.num_of_shares
+            trans_history.insert(tk.END, "Day#:{} = Sold {} of shares @ ${} \n".format(trader.day_counter-1, stock_num_input.get(), data[trader.day_counter-1][1]))
+            nextday()
+        else:
+            tk.messagebox.showwarning("Not Enough Shares!", "Sorry, You dont have enough shares to complete this transaction.")
     else:
-        tk.messagebox.showwarning("Not Enough Shares!", "Sorry, You dont have enough shares to complete this transaction.")
+        tk.messagebox.showwarning("Invalid transaction", """You can't buy "zero" shares""")
 
 def hold():
     nextday()
 
 def about():
-    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.0.1 \n by Roland Zeren")
+    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.0.2 \n by Roland Zeren")
 
 def load():
     global data
@@ -79,28 +88,28 @@ sub_menu_file.add_command(label="Exit", underline=0, command=win.destroy)
 sub_menu_about = tk.Menu(main_menu)
 main_menu.add_command(label="About", command=about)
 
-emptyspace = tk.Label(win, borderwidth=5, text="       ")
-
-acc_bal_label = tk.Label(win, text="Account Balance: ", width=20, anchor='w', bg='gray')
+acc_bal_label = tk.Label(win, text="Account Balance: ", width=16, anchor='w', bg='gray')
 acc_var = tk.Label(win, text="$" + "{:.2f}".format(trader.bank_account))
 
-shares_label = tk.Label(win, text="Shares on hand:",  width=20, anchor='w', bg='gray')
+shares_label = tk.Label(win, text="Shares on hand:",  width=16, anchor='w', bg='gray')
 shares_var = tk.Label(win, text=trader.num_of_shares)
 
-day_label = tk.Label(win, text="Trading Day:",  width=20, anchor='w', bg='gray')
+day_label = tk.Label(win, text="Trading Day:",  width=16, anchor='w', bg='gray')
 day_var = tk.Label(win, text="0")
 
-stock_label = tk.Label(win, text="Stock Symbol: ")
+stock_label = tk.Label(win, text="Stock Symbol: ", width=18, anchor='w', bg='green')
 stock_var = tk.Label(win, text="IBM")
-stock_price_label = tk.Label(win, text="Stock Price: ")
+stock_price_label = tk.Label(win, text="Stock Price: ", width=18, anchor='w', bg='green')
 stock_price_var = tk.Label(win, textvariable=stock_price_intvar)
-date_label = tk.Label(win, text="Date: ")
-date_var = tk.Label(win, text="date-variable")
+date_label = tk.Label(win, text="Date: ", width=18, anchor='w', bg='green')
+date_var = tk.Label(win, text="--/--/--")
 
 buy_bt = tk.Button(win, text="Buy", state="disabled", command=buy)
 sell_bt = tk.Button(win, text="Sell", state="disabled", command=sell)
 hold_bt = tk.Button(win, text="Hold", state="disabled", command=hold)
-max_bt = tk.Button(win, text="Max", state="disabled", command=lambda:stock_num_input.set(int(trader.bank_account / data[trader.day_counter-1][1])))
+max_bt = tk.Button(win, text="Max", state="disabled", justify=tk.LEFT,command=lambda:stock_num_input.set(int(trader.bank_account / data[trader.day_counter-1][1])))
+
+trans_history = tk.scrolledtext.ScrolledText(win, height=10, width=60)
 
 def test_Var(entry_value, acttion_type):
     print("Value: ", entry_value)
@@ -119,25 +128,24 @@ def test_Var(entry_value, acttion_type):
 user_input = tk.Entry(win, width=5, validate='key', textvariable=stock_num_input)
 user_input.configure(validatecommand=(win.register(test_Var), '%P', '%d'))
 
-acc_bal_label.grid(column=0, row=0, columnspan=2)
+acc_bal_label.grid(column=0, row=0, columnspan=2,  padx=10, pady=(10,0))
 acc_var.grid(column=2, row=0)
-shares_label.grid(column=0, row=1, columnspan=2)
+shares_label.grid(column=0, row=1, columnspan=2, padx=10)
 shares_var.grid(column=2, row=1)
-day_label.grid(column=0, row=2, columnspan=2)
+day_label.grid(column=0, row=2, columnspan=2, padx=10)
 day_var.grid(column=2, row=2)
-stock_label.grid(column=8, row=0, columnspan=2)
-stock_var.grid(column=10, row=0)
-stock_price_label.grid(column=8, row=1, columnspan=2)
-stock_price_var.grid(column=10, row=1)
-date_label.grid(column=8, row=2, columnspan=2)
-date_var.grid(column=10, row=2)
-max_bt.grid(column=6, row=3)
+stock_label.grid(column=5, row=0, columnspan=2, pady=(10,0))
+stock_var.grid(column=7, row=0)
+stock_price_label.grid(column=5, row=1, columnspan=2)
+stock_price_var.grid(column=7, row=1)
+date_label.grid(column=5, row=2, columnspan=2)
+date_var.grid(column=7, row=2)
+max_bt.grid(column=5, row=3, pady=10)
+trans_history.grid(row=5, column=0, columnspan=8, padx=10, pady=10)
 
-emptyspace.grid(column=0, row=3, columnspan=5, pady=30)
-
-buy_bt.grid(column=0, row=4, padx=10, pady=10)
-sell_bt.grid(column=1, row=4, padx=10, pady=10)
-hold_bt.grid(column=2, row=4, padx=10, pady=10)
-user_input.grid(column=5, row=3)
+buy_bt.grid(column=0, row=4, padx=10)
+sell_bt.grid(column=1, row=4, padx=10)
+hold_bt.grid(column=2, row=4, padx=10)
+user_input.grid(column=4, row=3, pady=10)
 
 win.mainloop()
