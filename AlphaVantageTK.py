@@ -61,7 +61,11 @@ def hold():
     nextday()
 
 def about():
+<<<<<<< HEAD
     tk.messagebox.showinfo("About", "Stock Simulator App Version 2.1.1 \n by Roland Zeren")
+=======
+    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.1.0 \n by Roland Zeren")
+>>>>>>> a0e0a6f43f10825df12087b49e1c99e43d327e93
 
 def load():
     global data
