@@ -30,7 +30,7 @@ def nextday():
     else:
         trader.day_counter += 1
         day_var['text'] = trader.day_counter
-        stock_price_intvar.set("$" + str(data[trader.day_counter-1][1]))
+        stock_price_intvar.set("$" + str(data[trader.day_counter][1]))
         date_var['text'] = data[trader.day_counter-1][0]
 
 def buy():
@@ -61,11 +61,7 @@ def hold():
     nextday()
 
 def about():
-<<<<<<< HEAD
-    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.1.1 \n by Roland Zeren")
-=======
-    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.1.0 \n by Roland Zeren")
->>>>>>> a0e0a6f43f10825df12087b49e1c99e43d327e93
+    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.1.2 \n by Roland Zeren")
 
 def load():
     global data
@@ -111,7 +107,7 @@ date_var = tk.Label(win, text="--/--/--")
 buy_bt = tk.Button(win, text="Buy", state="disabled", command=buy)
 sell_bt = tk.Button(win, text="Sell", state="disabled", command=sell)
 hold_bt = tk.Button(win, text="Hold", state="disabled", command=hold)
-max_bt = tk.Button(win, text="Max", state="disabled", justify=tk.LEFT,command=lambda:stock_num_input.set(int(trader.bank_account / data[trader.day_counter-1][1])))
+max_bt = tk.Button(win, text="Max", state="disabled", justify=tk.LEFT, command=lambda:stock_num_input.set(int(trader.bank_account / data[trader.day_counter-1][1])))
 
 trans_history = tk.scrolledtext.ScrolledText(win, height=10, width=60)
 

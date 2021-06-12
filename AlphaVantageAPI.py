@@ -1,5 +1,5 @@
 import requests
-
+import os
 '''
 Simple stock simulator:
 Game simulates real stock market data provided by Alpha Vantage
@@ -33,6 +33,7 @@ class DayTrader:
     def buy(self, shares, price):
         if shares * price > self.bank_account:
             print("Sorry not enough cash in your bank account.")
+            return False
         else:
             self.bank_account -= shares * price
             self.num_of_shares += shares
@@ -41,6 +42,7 @@ class DayTrader:
     def sell(self, shares, price):
         if shares > self.num_of_shares:
             print("You dont have {} shares to sell".format(shares))
+            return False
         else:
             self.bank_account += shares * price
             self.num_of_shares -= shares
@@ -48,12 +50,8 @@ class DayTrader:
 
 def load_data():
     MYFUNCTION = "TIME_SERIES_DAILY" # "GLOBAL_QUOTE"
-    MYKEY = "A7SW5BBTJ4PNLKAK"
+    MYKEY = os.environ.get('MY_AVAPI_KEY')
     MYSYMBOL = "IBM"
-    #print("NOT Making a request.!!!!!")
-    #print("Data made up and sent.")
-    #data = [('2021-04-12', 134.59), ('2021-04-13', 144.59), ('2021-04-14', 154.59), ('2021-04-15', 184.59), ('2021-04-16', 194.59)]
-    #return data
     r = requests.get("https://www.alphavantage.co/query?function="+ MYFUNCTION +"&symbol=IBM&apikey=" + MYKEY)
     data = r.json()
 
