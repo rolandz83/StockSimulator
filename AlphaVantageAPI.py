@@ -20,12 +20,12 @@ AlphaVantageTK.py is the main app with GUI.
 Enjoy.
 '''
 
-
 class DayTrader:
     def __init__(self):
         self.bank_account = 10000
         self.num_of_shares = 0
         self.day_counter = 0
+        self.__marketData = []
 
     def __str__(self):
         return "Bank account balance $" + str("{:.2f}".format(self.bank_account)) + " and You own {} shares".format(self.num_of_shares)
@@ -48,22 +48,27 @@ class DayTrader:
             self.num_of_shares -= shares
             return True
 
-def load_data():
-    MYFUNCTION = "TIME_SERIES_DAILY" # "GLOBAL_QUOTE"
-    MYKEY = os.environ.get('MY_AVAPI_KEY')
-    MYSYMBOL = "IBM"
-    r = requests.get("https://www.alphavantage.co/query?function="+ MYFUNCTION +"&symbol=IBM&apikey=" + MYKEY)
-    data = r.json()
+    def load_data(self):
+        MYFUNCTION = "TIME_SERIES_DAILY" # "GLOBAL_QUOTE"
+        MYKEY = os.environ.get('MY_AVAPI_KEY')
+        MYSYMBOL = "IBM"
+        r = requests.get("https://www.alphavantage.co/query?function="+ MYFUNCTION +"&symbol=IBM&apikey=" + MYKEY)
+        data = r.json()
+        counter = 0
+        for k , v in data["Time Series (Daily)"].items():
+            self.__marketData.append((k, float(v["4. close"])))
+            counter += 1
+            if counter == 30:
+                break
+            print("Date: ", k ," price ", v["4. close"])
+        print("Price Load complete... Lets play")
+        self.__marketData.reverse()
+        print("DEBUG PRINT of market data in reverse: ")
+        for i in self.__marketData:
+            print("date: ", i[0], " $", i[1])
 
-    load_prices = []
-    counter = 0
-    for k , v in data["Time Series (Daily)"].items():
-        load_prices.append((k, float(v["4. close"])))
-        counter += 1
-        if counter == 30:
-            break
-        print("Date: ", k ," price ", v["4. close"])
+    def getTodaysPrice(self, day):
+        return self.__marketData[day][1]
 
-    print("Price Load complete... Lets play")
-    load_prices.reverse()
-    return load_prices
+    def getTodaysDate(self, day):
+        return self.__marketData[day][0]

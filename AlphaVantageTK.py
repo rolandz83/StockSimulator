@@ -16,7 +16,7 @@ stock_num_input = tk.StringVar(value="1")
 
 def nextday():
     if day_var['text'] == 30:
-        account_total = trader.bank_account + trader.num_of_shares * data[trader.day_counter-1][1]
+        account_total = trader.bank_account + trader.num_of_shares * trader.getTodaysPrice(trader.day_counter-1)
         if account_total < 10000:
             tk.messagebox.showinfo("Game Over", """Day 30 reached.
                                     Your total account worth is ${:.2f}
@@ -30,15 +30,15 @@ def nextday():
     else:
         trader.day_counter += 1
         day_var['text'] = trader.day_counter
-        stock_price_intvar.set("$" + str(data[trader.day_counter][1]))
-        date_var['text'] = data[trader.day_counter-1][0]
+        stock_price_intvar.set("${:.2f}".format(trader.getTodaysPrice(trader.day_counter)))
+        date_var['text'] = trader.getTodaysDate(trader.day_counter)
 
 def buy():
     if stock_num_input.get() != "0":
-        if trader.buy(int(stock_num_input.get()),data[trader.day_counter-1][1]): #Returns false if transaction fails.
-            acc_var['text'] = "$" + "{:.2f}".format(trader.bank_account)
+        if trader.buy(int(stock_num_input.get()), trader.getTodaysPrice(trader.day_counter-1)): #Returns false if transaction fails.
+            acc_var['text'] = "${:.2f}".format(trader.bank_account)
             shares_var['text'] = trader.num_of_shares
-            trans_history.insert(tk.END, "Day#:{} = Bought {} of shares @ ${} \n".format(trader.day_counter-1, stock_num_input.get(), data[trader.day_counter-1][1]))
+            trans_history.insert(tk.END, "Day#:{} = Bought {} of shares @ ${} \n".format(trader.day_counter, stock_num_input.get(), trader.getTodaysPrice(trader.day_counter-1)))
             nextday()
         else:
             tk.messagebox.showwarning("Not Enough funds!", "Sorry, You dont have enough cash to complete this transaction.")
@@ -47,10 +47,10 @@ def buy():
 
 def sell():
     if stock_num_input.get() != "0":
-        if trader.sell(int(stock_num_input.get()),data[trader.day_counter-1][1]):
-            acc_var['text'] = "$" + "{:.2f}".format(trader.bank_account)
+        if trader.sell(int(stock_num_input.get()),trader.getTodaysPrice(trader.day_counter-1)):
+            acc_var['text'] = "${:.2f}".format(trader.bank_account)
             shares_var['text'] = trader.num_of_shares
-            trans_history.insert(tk.END, "Day#:{} = Sold {} of shares @ ${} \n".format(trader.day_counter-1, stock_num_input.get(), data[trader.day_counter-1][1]))
+            trans_history.insert(tk.END, "Day#:{} = Sold {} of shares @ ${} \n".format(trader.day_counter, stock_num_input.get(), trader.getTodaysPrice(trader.day_counter-1)))
             nextday()
         else:
             tk.messagebox.showwarning("Not Enough Shares!", "Sorry, You dont have enough shares to complete this transaction.")
@@ -61,18 +61,16 @@ def hold():
     nextday()
 
 def about():
-    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.1.2 \n by Roland Zeren")
+    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.2.1 \n by Roland Zeren")
 
 def load():
-    global data
-    data = Trade.load_data()
+    trader.load_data()
     buy_bt.configure(state="active")
     sell_bt.configure(state="active")
     hold_bt.configure(state="active")
     max_bt.configure(state="active")
-    stock_price_intvar.set("$" + str(data[trader.day_counter][1]))
-    date_var['text'] = data[trader.day_counter][0]
-    nextday()
+    stock_price_intvar.set("${:.2f}".format(trader.getTodaysPrice(trader.day_counter)))
+    date_var['text'] = trader.getTodaysDate(trader.day_counter)
     sub_menu_file.entryconfig('Load', state=tk.DISABLED)
 
 main_menu = tk.Menu(win)
@@ -89,7 +87,7 @@ sub_menu_about = tk.Menu(main_menu)
 main_menu.add_command(label="About", command=about)
 
 acc_bal_label = tk.Label(win, text="Account Balance: ", width=16, anchor='w', bg='gray')
-acc_var = tk.Label(win, text="$" + "{:.2f}".format(trader.bank_account))
+acc_var = tk.Label(win, text="${:.2f}".format(trader.bank_account))
 
 shares_label = tk.Label(win, text="Shares on hand:",  width=16, anchor='w', bg='gray')
 shares_var = tk.Label(win, text=trader.num_of_shares)
@@ -107,7 +105,7 @@ date_var = tk.Label(win, text="--/--/--")
 buy_bt = tk.Button(win, text="Buy", state="disabled", command=buy)
 sell_bt = tk.Button(win, text="Sell", state="disabled", command=sell)
 hold_bt = tk.Button(win, text="Hold", state="disabled", command=hold)
-max_bt = tk.Button(win, text="Max", state="disabled", justify=tk.LEFT, command=lambda:stock_num_input.set(int(trader.bank_account / data[trader.day_counter-1][1])))
+max_bt = tk.Button(win, text="Max", state="disabled", justify=tk.LEFT, command=lambda:stock_num_input.set(int(trader.bank_account / trader.getTodaysPrice(trader.day_counter-1))))
 
 trans_history = tk.scrolledtext.ScrolledText(win, height=10, width=60)
 
