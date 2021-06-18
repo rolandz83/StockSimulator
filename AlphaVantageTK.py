@@ -4,7 +4,7 @@ from tkinter import scrolledtext
 import AlphaVantageAPI as Trade
 
 win = tk.Tk()
-win.title("IBM Stock Simulator")
+win.title("Stock Simulator")
 win.geometry("540x330")
 
 trader = Trade.DayTrader()
@@ -15,7 +15,7 @@ stock_price_intvar.set("$---")
 stock_num_input = tk.StringVar(value="1")
 
 def nextday():
-    if day_var['text'] == 30:
+    if day_var['text'] == 29:
         account_total = trader.bank_account + trader.num_of_shares * trader.getTodaysPrice(trader.day_counter-1)
         if account_total < 10000:
             tk.messagebox.showinfo("Game Over", """Day 30 reached.
@@ -61,17 +61,67 @@ def hold():
     nextday()
 
 def about():
-    tk.messagebox.showinfo("About", "Stock Simulator App Version 2.2.1 \n by Roland Zeren")
+    tk.messagebox.showinfo("About", "Stock Simulator App Version 3.0.1 \n by Roland Zeren")
 
 def load():
-    trader.load_data()
-    buy_bt.configure(state="active")
-    sell_bt.configure(state="active")
-    hold_bt.configure(state="active")
-    max_bt.configure(state="active")
-    stock_price_intvar.set("${:.2f}".format(trader.getTodaysPrice(trader.day_counter)))
-    date_var['text'] = trader.getTodaysDate(trader.day_counter)
-    sub_menu_file.entryconfig('Load', state=tk.DISABLED)
+    if stock_var['text'] != '':
+        trader.load_data(stock_var['text'])
+        buy_bt.configure(state="active")
+        sell_bt.configure(state="active")
+        hold_bt.configure(state="active")
+        max_bt.configure(state="active")
+        stock_price_intvar.set("${:.2f}".format(trader.getTodaysPrice(trader.day_counter)))
+        date_var['text'] = trader.getTodaysDate(trader.day_counter)
+        #sub_menu_file.entryconfig('Load', state=tk.DISABLED)
+    else:
+        tk.messagebox.showinfo("Load Error", "Stock Symbol not selected, please go to File > Settings to pick a stock symbol to load.")
+
+def check(event, myEntry, myListBox):
+    searchTerm = myEntry.get()
+    if searchTerm == '':
+        myListBox.delete(0, tk.END)
+    else:
+        if len(searchTerm) > 2:
+            results = []
+            for stock in trader.stockSearch(searchTerm):
+                if searchTerm.lower() in stock.lower():
+                    results.append(stock)
+            updateSearchList(myListBox, results)
+
+def fillout(event, myEntry, myListBox):  #listbox event.
+    myEntry.delete(0, tk.END)
+    myEntry.insert(0, myListBox.get(tk.ANCHOR))
+
+def updateSearchList(myListBox, data): #update listbox
+    myListBox.delete(0, tk.END)
+    for item in data:
+        myListBox.insert(tk.END, item)
+
+def applyChanges(label, symbol):
+    label['text'] = symbol
+
+def settings(stock_var):
+    childSettingWin = tk.Toplevel(win)
+    childSettingWin.geometry("400x300")
+    childSettingWin.title("Settings")
+    label_child = tk.Label(childSettingWin, text="Please enter the stock symbol or description")
+    label_child.pack(pady=10)
+
+    stockSearchEntry = tk.Entry(childSettingWin)
+    stockSearchEntry.pack()
+
+    searchResultList = tk.Listbox(childSettingWin, width=60)
+    searchResultList.pack(pady=10)
+
+    applyButton = tk.Button(childSettingWin, text="Apply", command=lambda : applyChanges(stock_var, stockSearchEntry.get().split(" - ")[0]))
+    applyButton.pack()
+
+    okButton = tk.Button(childSettingWin, text="OK", command=childSettingWin.destroy)
+    okButton.pack()
+
+    searchResultList.bind("<<ListboxSelect>>", lambda e, entry=stockSearchEntry, list=searchResultList : fillout(entry, entry, list))
+
+    stockSearchEntry.bind("<KeyRelease>", lambda e, entry=stockSearchEntry, list=searchResultList : check(entry, entry, list))
 
 main_menu = tk.Menu(win)
 win.config(menu=main_menu)
@@ -80,11 +130,14 @@ sub_menu_file = tk.Menu(main_menu, tearoff=0)
 main_menu.add_cascade(label="File", underline=0, menu=sub_menu_file)
 
 sub_menu_file.add_command(label="Load", underline=0, command=load)
+sub_menu_file.add_command(label="Settings", underline=0, command=lambda:settings(stock_var))
 sub_menu_file.add_separator()
 sub_menu_file.add_command(label="Exit", underline=0, command=win.destroy)
 
 sub_menu_about = tk.Menu(main_menu)
 main_menu.add_command(label="About", command=about)
+
+
 
 acc_bal_label = tk.Label(win, text="Account Balance: ", width=16, anchor='w', bg='gray')
 acc_var = tk.Label(win, text="${:.2f}".format(trader.bank_account))
@@ -96,7 +149,7 @@ day_label = tk.Label(win, text="Trading Day:",  width=16, anchor='w', bg='gray')
 day_var = tk.Label(win, text="0")
 
 stock_label = tk.Label(win, text="Stock Symbol: ", width=18, anchor='w', bg='green')
-stock_var = tk.Label(win, text="IBM")
+stock_var = tk.Label(win, text='')
 stock_price_label = tk.Label(win, text="Stock Price: ", width=18, anchor='w', bg='green')
 stock_price_var = tk.Label(win, textvariable=stock_price_intvar)
 date_label = tk.Label(win, text="Date: ", width=18, anchor='w', bg='green')
@@ -110,17 +163,13 @@ max_bt = tk.Button(win, text="Max", state="disabled", justify=tk.LEFT, command=l
 trans_history = tk.scrolledtext.ScrolledText(win, height=10, width=60)
 
 def test_Var(entry_value, acttion_type):
-    print("Value: ", entry_value)
     if acttion_type == '1': #inster detected
         if not entry_value.isdigit():
-            print("false")
             return False  #entry denied
         return True
     if acttion_type == '0': #deleting accured
-        print("Deleted")
         return True
     if acttion_type == '-1': #when var is changed by set()
-        print("something else happeened")
         return True
 
 user_input = tk.Entry(win, width=5, validate='key', textvariable=stock_num_input)
@@ -146,4 +195,5 @@ sell_bt.grid(column=1, row=4, padx=10)
 hold_bt.grid(column=2, row=4, padx=10)
 user_input.grid(column=4, row=3, pady=10)
 
-win.mainloop()
+if __name__ == '__main__':
+    win.mainloop()

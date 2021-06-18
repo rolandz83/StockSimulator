@@ -48,11 +48,11 @@ class DayTrader:
             self.num_of_shares -= shares
             return True
 
-    def load_data(self):
+    def load_data(self, stockSymbol):
         MYFUNCTION = "TIME_SERIES_DAILY" # "GLOBAL_QUOTE"
         MYKEY = os.environ.get('MY_AVAPI_KEY')
-        MYSYMBOL = "IBM"
-        r = requests.get("https://www.alphavantage.co/query?function="+ MYFUNCTION +"&symbol=IBM&apikey=" + MYKEY)
+        MYSYMBOL = stockSymbol
+        r = requests.get("https://www.alphavantage.co/query?function="+ MYFUNCTION +"&symbol="+ MYSYMBOL + "&apikey=" + MYKEY)
         data = r.json()
         counter = 0
         for k , v in data["Time Series (Daily)"].items():
@@ -60,15 +60,20 @@ class DayTrader:
             counter += 1
             if counter == 30:
                 break
-            print("Date: ", k ," price ", v["4. close"])
-        print("Price Load complete... Lets play")
         self.__marketData.reverse()
-        print("DEBUG PRINT of market data in reverse: ")
-        for i in self.__marketData:
-            print("date: ", i[0], " $", i[1])
 
     def getTodaysPrice(self, day):
         return self.__marketData[day][1]
 
     def getTodaysDate(self, day):
         return self.__marketData[day][0]
+
+    def stockSearch(self, keyword):
+        MYFUNCTION = "SYMBOL_SEARCH"
+        MYKEY = os.environ.get('MY_AVAPI_KEY')
+        r = requests.get("https://www.alphavantage.co/query?function="+ MYFUNCTION +"&keywords="+ keyword + "&apikey=" + MYKEY)
+        data = r.json()
+        searchResults = []
+        for stock in data["bestMatches"]:
+            searchResults.append(stock["1. symbol"] + " - " + stock["2. name"])
+        return searchResults
